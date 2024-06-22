@@ -1,0 +1,969 @@
+Welcome to the AngularJS API docs page.
+These pages contain the AngularJS reference materials for version 1.8.4-local+sha.47bf11ee9 snapshot.
+
+The documentation is organized into modules which contain various components of an AngularJS application. These components are directives, services, filters, providers, templates, global APIs, and testing mocks.
+
+There is also a guide with articles on various topics, and a list of external resources.
+
+AngularJS Prefixes $ and $$: To prevent accidental name collisions with your code, AngularJS prefixes names of public objects with $ and names of private objects with $$. Please do not use the $ or $$ prefix in your code.
+AngularJS Modules
+ng (core module)
+This module is provided by default and contains the core components of AngularJS.
+
+Directives	
+This is the core collection of directives you would use in your template code to build an AngularJS application.
+
+Some examples include: ngClick, ngInclude, ngRepeat, etc…
+Services / Factories	
+This is the core collection of services which are used within the DI of your application.
+
+Some examples include: $compile, $http, $location, etc…
+
+Filters	
+The core filters available in the ng module are used to transform template data before it is rendered within directives and expressions.
+
+Some examples include: filter, date, currency, lowercase, uppercase, etc...
+
+Global APIs	
+The core global API functions are attached to the angular object. These core functions are useful for low level JavaScript operations within your application.
+
+Some examples include: angular.copy(), angular.equals(), angular.element(), etc...
+
+ngRoute
+Use ngRoute to enable URL routing to your application. The ngRoute module supports URL management via both hashbang and HTML5 pushState.
+
+Include the angular-route.js file and set ngRoute as a dependency for this to work in your application.
+Services / Factories	The following services are used for route management:
+$routeParams is used to access the querystring values present in the URL.
+$route is used to access the details of the route that is currently being accessed.
+$routeProvider is used to register routes for the application.
+Directives	The ngView directive will display the template of the current route within the page.
+ngAnimate
+Use ngAnimate to enable animation features within your application. Various core AngularJS directives will provide animation hooks into your application when ngAnimate is included. Animations are defined by using CSS transitions/animations or JavaScript callbacks.
+
+Include the angular-animate.js file and set ngAnimate as a dependency for this to work in your application.
+Services / Factories	Use $animate to trigger animation operations within your directive code.
+CSS-based animations	Follow ngAnimate’s CSS naming structure to reference CSS transitions / keyframe animations in AngularJS. Once defined, the animation can be triggered by referencing the CSS class within the HTML template code.
+JS-based animations	Use module.animation() to register a JavaScript animation. Once registered, the animation can be triggered by referencing the CSS class within the HTML template code.
+ngAria
+Use ngAria to inject common accessibility attributes into directives and improve the experience for users with disabilities.
+
+Include the angular-aria.js file and set ngAria as a dependency for this to work in your application.
+Services	
+The $aria service contains helper methods for applying ARIA attributes to HTML.
+
+$ariaProvider is used for configuring ARIA attributes.
+
+ngResource
+Use the ngResource module when querying and posting data to a REST API.
+
+Include the angular-resource.js file and set ngResource as a dependency for this to work in your application.
+Services / Factories	The $resource service is used to define RESTful objects which communicate with a REST API.
+ngCookies
+Use the ngCookies module to handle cookie management within your application.
+
+Include the angular-cookies.js file and set ngCookies as a dependency for this to work in your application.
+Services / Factories	The $cookies service is a convenient wrapper to store simple data within browser cookies.
+ngTouch
+Use ngTouch when developing for mobile browsers/devices.
+
+Include the angular-touch.js file and set ngTouch as a dependency for this to work in your application.
+Services / Factories	The $swipe service is used to register and manage mobile DOM events.
+Directives	Various directives are available in ngTouch to emulate mobile DOM events.
+ngSanitize
+Use ngSanitize to securely parse and manipulate HTML data in your application.
+
+Include the angular-sanitize.js file and set ngSanitize as a dependency for this to work in your application.
+Services / Factories	The $sanitize service is used to clean up dangerous HTML code in a quick and convenient way.
+Filters	The linky filter is used to turn URLs into HTML links within the provided string.
+ngMock
+Use ngMock to inject and mock modules, factories, services and providers within your unit tests.
+
+Include the angular-mocks.js file into your test runner for this to work.
+Services / Factories	
+ngMock will extend the behavior of various core services to become testing aware and manageable in a synchronous manner.
+
+Some examples include: $timeout, $interval, $log, $httpBackend, etc...
+
+Global APIs	
+Various helper functions are available to inject and mock modules within unit test code.
+
+Some examples inject(), module(), dump(), etc...
+
+<i:Interaction.Triggers>
+    <i:EventTrigger>
+        <i:InvokeCommandAction Command="{Binding ConnectCommand}"/>
+    </i:EventTrigger>
+    ...
+</i:Interaction.Triggers>
+
+using System;
+using Microsoft.AspNet.SignalR;
+using Microsoft.Owin.Cors;
+using Microsoft.Owin.Hosting;
+using Owin;
+
+
+namespace SignalServer
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var url = "http://localhost:8080/";
+            using (WebApp.Start<Startup>(url))
+            {
+                Console.WriteLine($"Server running at {url}");
+                Console.ReadLine();
+            }
+        }
+    }
+
+    public class Startup
+    {
+        public void Configuration(IAppBuilder app)
+        {
+            app.UseCors(CorsOptions.AllowAll);
+            app.MapSignalR("/signalchat", new HubConfiguration());
+        }
+    }
+}
+
+public class ChatHub : Hub<IClient>
+{
+    private static ConcurrentDictionary<string, User> ChatClients = 
+                                           new ConcurrentDictionary<string, User>();
+
+    public override Task OnDisconnected(bool stopCalled)
+    {
+        var userName = ChatClients.SingleOrDefault((c) => c.Value.ID == Context.ConnectionId).Key;
+        if (userName != null)
+        {
+            Clients.Others.ParticipantDisconnection(userName);
+            Console.WriteLine($"<> {userName} disconnected");
+        }
+        return base.OnDisconnected(stopCalled);
+    }
+
+    public override Task OnReconnected()
+    {
+        var userName = ChatClients.SingleOrDefault((c) => c.Value.ID == Context.ConnectionId).Key;
+        if (userName != null)
+        {
+            Clients.Others.ParticipantReconnection(userName);
+            Console.WriteLine($"== {userName} reconnected");
+        }
+        return base.OnReconnected();
+    }
+
+    public List<User> Login(string name, byte[] photo)
+    {
+        if (!ChatClients.ContainsKey(name))
+        {
+            Console.WriteLine($"++ {name} logged in");
+            List<User> users = new List<User>(ChatClients.Values);
+            User newUser = new User { Name = name, ID = Context.ConnectionId, Photo = photo };
+            var added = ChatClients.TryAdd(name, newUser);
+            if (!added) return null;
+            Clients.CallerState.UserName = name;
+            Clients.Others.ParticipantLogin(newUser);
+            return users;
+        }
+        return null;
+    }
+
+    public void Logout()
+    {
+        var name = Clients.CallerState.UserName;
+        if (!string.IsNullOrEmpty(name))
+        {
+            User client = new User();
+            ChatClients.TryRemove(name, out client);
+            Clients.Others.ParticipantLogout(name);
+            Console.WriteLine($"-- {name} logged out");
+        }
+    }
+
+    public void BroadcastTextMessage(string message)
+    {
+        var name = Clients.CallerState.UserName;
+        if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(message))
+        {
+            Clients.Others.BroadcastTextMessage(name, message);
+        }
+    }
+
+    public void BroadcastImageMessage(byte[] img)
+    {
+        var name = Clients.CallerState.UserName;
+        if (img != null)
+        {
+            Clients.Others.BroadcastPictureMessage(name, img);
+        }
+    }
+
+    public void UnicastTextMessage(string recepient, string message)
+    {
+        var sender = Clients.CallerState.UserName;
+        if (!string.IsNullOrEmpty(sender) && recepient != sender &&
+            !string.IsNullOrEmpty(message) && ChatClients.ContainsKey(recepient))
+        {
+            User client = new User();
+            ChatClients.TryGetValue(recepient, out client);
+            Clients.Client(client.ID).UnicastTextMessage(sender, message);
+        }
+    }
+
+    public void UnicastImageMessage(string recepient, byte[] img)
+    {
+        var sender = Clients.CallerState.UserName;
+        if (!string.IsNullOrEmpty(sender) && recepient != sender &&
+            img != null && ChatClients.ContainsKey(recepient))
+        {
+            User client = new User();
+            ChatClients.TryGetValue(recepient, out client);
+            Clients.Client(client.ID).UnicastPictureMessage(sender, img);
+        }
+    }
+    public void Typing(string recepient)
+    {
+        if (string.IsNullOrEmpty(recepient)) return;
+        var sender = Clients.CallerState.UserName;
+        User client = new User();
+        ChatClients.TryGetValue(recepient, out client);
+        Clients.Client(client.ID).ParticipantTyping(sender);
+    }
+}
+
+private ICommand _loginCommand;
+public ICommand LoginCommand
+{
+    get
+    {
+        if (_loginCommand == null) _loginCommand = new RelayCommandAsync(() => Login(), 
+                                 (o) => CanLogin());
+        return _loginCommand;
+    }
+}
+
+private async Task<bool> Login()
+{
+    try
+    {
+        List<User> users = new List<User>();
+        users = await chatService.LoginAsync(_userName, Avatar());
+        if (users != null)
+        {
+            users.ForEach(u => Participants.Add(new Participant { Name = u.Name, Photo = u.Photo }));
+            UserMode = UserModes.Chat;
+            IsLoggedIn = true;
+            return true;
+        }
+        else
+        {
+            dialogService.ShowNotification("Username is already in use");
+            return false;
+        }
+
+    }
+    catch (Exception) { return false; }
+}
+
+private bool CanLogin()
+{
+    return !string.IsNullOrEmpty(UserName) && UserName.Length >= 2 && IsConnected;
+}
+
+private ICommand _sendTextMessageCommand;
+public ICommand SendTextMessageCommand
+{
+    get
+    {
+        if (_sendTextMessageCommand == null) _sendTextMessageCommand =
+                new RelayCommandAsync(() => SendTextMessage(), (o) => CanSendTextMessage());
+        return _sendTextMessageCommand;
+    }
+}
+
+private async Task<bool> SendTextMessage()
+{
+    try
+    {
+        var recepient = _selectedParticipant.Name;
+        await chatService.SendUnicastMessageAsync(recepient, _textMessage);
+        return true;
+    }
+    catch (Exception) { return false; }
+    finally
+    {
+        ChatMessage msg = new ChatMessage
+        {
+            Author = UserName,
+            Message = _textMessage,
+            Time = DateTime.Now,
+            IsOriginNative = true
+        };
+        SelectedParticipant.Chatter.Add(msg);
+        TextMessage = string.Empty;
+    }
+}
+
+private bool CanSendTextMessage()
+{
+    return (!string.IsNullOrEmpty(TextMessage) && IsConnected &&
+        _selectedParticipant != null && _selectedParticipant.IsLoggedIn);
+}
+
+SignalChat Server
+The SignalChat server is hosted in a console application – a process referred to as self-hosting – where the server hub, which is the core of the SignalR server, is defined and configured. Configuration is done in the Startup and Program classes.
+
+CSVB.NET
+Shrink ▲   
+using System;
+using Microsoft.AspNet.SignalR;
+using Microsoft.Owin.Cors;
+using Microsoft.Owin.Hosting;
+using Owin;
+
+
+namespace SignalServer
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var url = "http://localhost:8080/";
+            using (WebApp.Start<Startup>(url))
+            {
+                Console.WriteLine($"Server running at {url}");
+                Console.ReadLine();
+            }
+        }
+    }
+
+    public class Startup
+    {
+        public void Configuration(IAppBuilder app)
+        {
+            app.UseCors(CorsOptions.AllowAll);
+            app.MapSignalR("/signalchat", new HubConfiguration());
+        }
+    }
+}
+The server hub's full path will be http://localhost:8080/signalchat and it is configured for cross-domain communication.
+
+The hub is the core of a SignalR server as it handles communication between the server and connected clients. The SignalChat server contains a single hub class, that is strongly-typed, which contains methods that deal with client connection, disconnection, login, logout, and sending of messages to all (broadcast) or a specific client (unicast). Note: The SignalChat clients only invokes the unicast methods when sending messages.
+
+CSVB.NET
+Shrink ▲   
+public class ChatHub : Hub<IClient>
+{
+    private static ConcurrentDictionary<string, User> ChatClients = 
+                                           new ConcurrentDictionary<string, User>();
+
+    public override Task OnDisconnected(bool stopCalled)
+    {
+        var userName = ChatClients.SingleOrDefault((c) => c.Value.ID == Context.ConnectionId).Key;
+        if (userName != null)
+        {
+            Clients.Others.ParticipantDisconnection(userName);
+            Console.WriteLine($"<> {userName} disconnected");
+        }
+        return base.OnDisconnected(stopCalled);
+    }
+
+    public override Task OnReconnected()
+    {
+        var userName = ChatClients.SingleOrDefault((c) => c.Value.ID == Context.ConnectionId).Key;
+        if (userName != null)
+        {
+            Clients.Others.ParticipantReconnection(userName);
+            Console.WriteLine($"== {userName} reconnected");
+        }
+        return base.OnReconnected();
+    }
+
+    public List<User> Login(string name, byte[] photo)
+    {
+        if (!ChatClients.ContainsKey(name))
+        {
+            Console.WriteLine($"++ {name} logged in");
+            List<User> users = new List<User>(ChatClients.Values);
+            User newUser = new User { Name = name, ID = Context.ConnectionId, Photo = photo };
+            var added = ChatClients.TryAdd(name, newUser);
+            if (!added) return null;
+            Clients.CallerState.UserName = name;
+            Clients.Others.ParticipantLogin(newUser);
+            return users;
+        }
+        return null;
+    }
+
+    public void Logout()
+    {
+        var name = Clients.CallerState.UserName;
+        if (!string.IsNullOrEmpty(name))
+        {
+            User client = new User();
+            ChatClients.TryRemove(name, out client);
+            Clients.Others.ParticipantLogout(name);
+            Console.WriteLine($"-- {name} logged out");
+        }
+    }
+
+    public void BroadcastTextMessage(string message)
+    {
+        var name = Clients.CallerState.UserName;
+        if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(message))
+        {
+            Clients.Others.BroadcastTextMessage(name, message);
+        }
+    }
+
+    public void BroadcastImageMessage(byte[] img)
+    {
+        var name = Clients.CallerState.UserName;
+        if (img != null)
+        {
+            Clients.Others.BroadcastPictureMessage(name, img);
+        }
+    }
+
+    public void UnicastTextMessage(string recepient, string message)
+    {
+        var sender = Clients.CallerState.UserName;
+        if (!string.IsNullOrEmpty(sender) && recepient != sender &&
+            !string.IsNullOrEmpty(message) && ChatClients.ContainsKey(recepient))
+        {
+            User client = new User();
+            ChatClients.TryGetValue(recepient, out client);
+            Clients.Client(client.ID).UnicastTextMessage(sender, message);
+        }
+    }
+
+    public void UnicastImageMessage(string recepient, byte[] img)
+    {
+        var sender = Clients.CallerState.UserName;
+        if (!string.IsNullOrEmpty(sender) && recepient != sender &&
+            img != null && ChatClients.ContainsKey(recepient))
+        {
+            User client = new User();
+            ChatClients.TryGetValue(recepient, out client);
+            Clients.Client(client.ID).UnicastPictureMessage(sender, img);
+        }
+    }
+    public void Typing(string recepient)
+    {
+        if (string.IsNullOrEmpty(recepient)) return;
+        var sender = Clients.CallerState.UserName;
+        User client = new User();
+        ChatClients.TryGetValue(recepient, out client);
+        Clients.Client(client.ID).ParticipantTyping(sender);
+    }
+}
+Client.CallerState is a dynamic property that is used to store state. When a client logs in a property named UserName is added to the dynamic object and is used to check which client is calling a particular method.
+
+SignalChat Client
+Connecting to the Server
+The client application connects to the chat server when the application is opened. This is done using an InvokeCommandAction which executes an ICommand when the application window is loaded.
+
+XML
+<i:Interaction.Triggers>
+    <i:EventTrigger>
+        <i:InvokeCommandAction Command="{Binding ConnectCommand}"/>
+    </i:EventTrigger>
+    ...
+</i:Interaction.Triggers>
+The ConnectCommand, that is defined in MainWindowViewModel, executes an asynchronous function that calls a method of an IChatService implementation – IChatService specifies events and methods that can be triggered/called to enable interaction with the server.
+
+CSVB.NET
+private ICommand _connectCommand;
+public ICommand ConnectCommand
+{
+    get
+    {
+        if (_connectCommand == null) _connectCommand = new RelayCommandAsync(() => Connect());
+        return _connectCommand;
+    }
+}
+
+private async Task<bool> Connect()
+{
+    try
+    {
+        await chatService.ConnectAsync();
+        IsConnected = true;
+        return true;
+    }
+    catch (Exception) { return false; }
+}
+In ConnectAsync(), an instance of a HubConnection and a proxy for the server hub are created. The proxy is used to specify which events the client app will deal with.
+
+CSVB.NET
+Shrink ▲   
+public async Task ConnectAsync()
+{
+    connection = new HubConnection(url);
+    hubProxy = connection.CreateHubProxy("ChatHub");
+    hubProxy.On<User>("ParticipantLogin", (u) => ParticipantLoggedIn?.Invoke(u));
+    hubProxy.On<string>("ParticipantLogout", (n) => ParticipantLoggedOut?.Invoke(n));
+    hubProxy.On<string>("ParticipantDisconnection", (n) => ParticipantDisconnected?.Invoke(n));
+    hubProxy.On<string>("ParticipantReconnection", (n) => ParticipantReconnected?.Invoke(n));
+    hubProxy.On<string, string>("BroadcastTextMessage", 
+             (n, m) => NewTextMessage?.Invoke(n, m, MessageType.Broadcast));
+    hubProxy.On<string, byte[]>("BroadcastPictureMessage", 
+             (n, m) => NewImageMessage?.Invoke(n, m, MessageType.Broadcast));
+    hubProxy.On<string, string>("UnicastTextMessage", 
+             (n, m) => NewTextMessage?.Invoke(n, m, MessageType.Unicast));
+    hubProxy.On<string, byte[]>("UnicastPictureMessage", 
+             (n, m) => NewImageMessage?.Invoke(n, m, MessageType.Unicast));
+    hubProxy.On<string>("ParticipantTyping", (p) => ParticipantTyping?.Invoke(p)); 
+                
+    connection.Reconnecting += Reconnecting;
+    connection.Reconnected += Reconnected;
+    connection.Closed += Disconnected;
+
+    ServicePointManager.DefaultConnectionLimit = 10;
+    await connection.Start();
+}
+Logging into the Server
+The login button is enabled when the user enters a name in the username TextBox. The button executes LoginCommand when clicked.
+
+CSVB.NET
+Shrink ▲   
+private ICommand _loginCommand;
+public ICommand LoginCommand
+{
+    get
+    {
+        if (_loginCommand == null) _loginCommand = new RelayCommandAsync(() => Login(), 
+                                 (o) => CanLogin());
+        return _loginCommand;
+    }
+}
+
+private async Task<bool> Login()
+{
+    try
+    {
+        List<User> users = new List<User>();
+        users = await chatService.LoginAsync(_userName, Avatar());
+        if (users != null)
+        {
+            users.ForEach(u => Participants.Add(new Participant { Name = u.Name, Photo = u.Photo }));
+            UserMode = UserModes.Chat;
+            IsLoggedIn = true;
+            return true;
+        }
+        else
+        {
+            dialogService.ShowNotification("Username is already in use");
+            return false;
+        }
+
+    }
+    catch (Exception) { return false; }
+}
+
+private bool CanLogin()
+{
+    return !string.IsNullOrEmpty(UserName) && UserName.Length >= 2 && IsConnected;
+}
+LoginAsync() invokes the Login() method on the server side hub. If a login is successful, a collection of User objects, containing the details of other clients that are already connected and logged into the server, is returned.
+
+CSVB.NET
+public async Task<List<User>> LoginAsync(string name, byte[] photo)
+{
+    return await hubProxy.Invoke<List<User>>("Login", new object[] { name, photo });
+}
+These clients are displayed in a ListBox whose ItemsSource property is bound to a collection of Participant objects.
+
+XML
+<Border Grid.RowSpan="2" BorderThickness="0,0,1,0" SnapsToDevicePixels="True"
+        BorderBrush="{DynamicResource MaterialDesignDivider}">
+    <ListBox ItemsSource="{Binding Participants}" 
+             ItemTemplate="{DynamicResource ParticipantsDataTemplate}"
+             ItemContainerStyle="{DynamicResource ParticipantsListBoxItemStyle}"
+             SelectedItem="{Binding SelectedParticipant}" 
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+             ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+</Border>
+The ParticipantsDataTemplate contains elements that display the client's profile picture, name, connection status, and whether the client has sent a new message that the user hasn't seen.
+
+XML
+Shrink ▲   
+<DataTemplate x:Key="ParticipantsDataTemplate">
+    <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource MaterialDesignDivider}"
+            Width="{Binding Path=ActualWidth, 
+            RelativeSource={RelativeSource FindAncestor, AncestorType=ListBoxItem}}"
+            Height="50" Margin="-2,0,0,0">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="50"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="15"/>
+                <ColumnDefinition Width="25"/>
+            </Grid.ColumnDefinitions>
+            <Rectangle x:Name="ParticipantRct" Fill="{DynamicResource PrimaryHueMidBrush}"
+                       Visibility="Hidden"/>
+            <!--Pic-->
+            <Grid Grid.Column="1" Margin="6" SnapsToDevicePixels="True">
+                <Grid.OpacityMask>
+                    <VisualBrush Visual="{Binding ElementName=ClipEllipse}"/>
+                </Grid.OpacityMask>
+                <Ellipse x:Name="ClipEllipse" Fill="White"/>
+                <materialDesign:PackIcon Kind="AccountCircle" 
+                                SnapsToDevicePixels="True" Width="Auto" Height="Auto"
+                                         Margin="-4" HorizontalAlignment="Stretch" 
+                                         VerticalAlignment="Stretch"/>
+                <Image Source="{Binding Photo, Converter={StaticResource ByteBmpSrcConverter},
+                    TargetNullValue={StaticResource BlankImage}}" Stretch="UniformToFill"/>
+            </Grid>
+            <!--Name-->
+            <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left"
+                       Margin="5,0" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                       Text="{Binding Name}" SnapsToDevicePixels="True"/>
+
+            <!--New Message icon-->
+            <materialDesign:PackIcon Name="NewMessageIcon" Grid.Column="3" SnapsToDevicePixels="True"
+                                     VerticalAlignment="Center" HorizontalAlignment="Center"
+                                     Kind="MessageReplyText" Opacity="0.8" Visibility="Hidden"/>
+                                     
+            <!--Typing icon-->
+            <materialDesign:PackIcon Name="TypingIcon" Grid.Column="3" SnapsToDevicePixels="True"
+                                     VerticalAlignment="Center" HorizontalAlignment="Center"
+                                     Kind="Feather" Opacity="0.8" Visibility="Hidden"/>
+                                                                          
+            <!--Online-->
+            <Ellipse Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                     Width="8" Height="8">
+                <Ellipse.Style>
+                    <Style TargetType="Ellipse">
+                        <Setter Property="Fill" Value="#F44336"/>
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding DataContext.IsConnected, 
+                                        RelativeSource={RelativeSource FindAncestor, 
+                                        AncestorType=UserControl}}" Value="True"/>
+                                    <Condition Binding="{Binding IsLoggedIn}" Value="True"/>
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.Setters>
+                                    <Setter Property="Fill" Value="#64DD17"/>
+                                </MultiDataTrigger.Setters>
+                            </MultiDataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Ellipse.Style>
+            </Ellipse>
+        </Grid>
+    </Border>
+    <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding HasSentNewMessage}" Value="True">
+            <Setter TargetName="NewMessageIcon" Property="Visibility" Value="Visible"/>
+        </DataTrigger>
+        <DataTrigger Binding="{Binding IsTyping}" Value="True">
+            <Setter TargetName="NewMessageIcon" Property="Visibility" Value="Hidden"/>
+            <Setter TargetName="TypingIcon" Property="Visibility" Value="Visible"/>            
+        </DataTrigger>        
+        <DataTrigger Binding="{Binding Path=IsSelected,
+            RelativeSource={RelativeSource FindAncestor, AncestorType=ListBoxItem}}" Value="true">
+            <Setter Property="Visibility" TargetName="ParticipantRct" Value="Visible"/>
+        </DataTrigger>
+    </DataTemplate.Triggers>
+</DataTemplate>
+Sending a Message
+The user can send either a text or image message. To send a text message, the user has to select a client in the client's list and type some text, which enables the send button. The SendTextMessageCommand is executed when the send button is clicked.
+
+CSVB.NET
+Shrink ▲   
+private ICommand _sendTextMessageCommand;
+public ICommand SendTextMessageCommand
+{
+    get
+    {
+        if (_sendTextMessageCommand == null) _sendTextMessageCommand =
+                new RelayCommandAsync(() => SendTextMessage(), (o) => CanSendTextMessage());
+        return _sendTextMessageCommand;
+    }
+}
+
+private async Task<bool> SendTextMessage()
+{
+    try
+    {
+        var recepient = _selectedParticipant.Name;
+        await chatService.SendUnicastMessageAsync(recepient, _textMessage);
+        return true;
+    }
+    catch (Exception) { return false; }
+    finally
+    {
+        ChatMessage msg = new ChatMessage
+        {
+            Author = UserName,
+            Message = _textMessage,
+            Time = DateTime.Now,
+            IsOriginNative = true
+        };
+        SelectedParticipant.Chatter.Add(msg);
+        TextMessage = string.Empty;
+    }
+}
+
+private bool CanSendTextMessage()
+{
+    return (!string.IsNullOrEmpty(TextMessage) && IsConnected &&
+        _selectedParticipant != null && _selectedParticipant.IsLoggedIn);
+}
+To send an image, the user clicks on the image button in the chat screen which executes the SendImageMessageCommand.
+
+CSVB.NET
+Shrink ▲   
+private ICommand _sendImageMessageCommand;
+public ICommand SendImageMessageCommand
+{
+    get
+    {
+        if (_sendImageMessageCommand == null) _sendImageMessageCommand =
+                new RelayCommandAsync(() => SendImageMessage(), (o) => CanSendImageMessage());
+        return _sendImageMessageCommand;
+    }
+}
+
+private async Task<bool> SendImageMessage()
+{
+    var pic = dialogService.OpenFile("Select image file", "Images (*.jpg;*.png)|*.jpg;*.png");
+    if (string.IsNullOrEmpty(pic)) return false;
+
+    var img = await Task.Run(() => File.ReadAllBytes(pic));
+
+    try
+    {
+        var recepient = _selectedParticipant.Name;
+        await chatService.SendUnicastMessageAsync(recepient, img);
+        return true;
+    }
+    catch (Exception) { return false; }
+    finally
+    {
+        ChatMessage msg = new ChatMessage 
+           { Author = UserName, Picture = pic, Time = DateTime.Now, IsOriginNative = true };
+        SelectedParticipant.Chatter.Add(msg);
+    }
+}
+
+private bool CanSendImageMessage()
+{
+    return (IsConnected && _selectedParticipant != null && _selectedParticipant.IsLoggedIn);
+}
+Displaying Chat Messages
+Chat messages are displayed in an ItemsControl whose ItemsSource property is bound to a collection of ChatMessage objects.
+
+XML
+<ItemsControl x:Name="MessagesItemsCtrl" Grid.Column="1" Margin="0,5,0,0"
+              ItemsSource="{Binding SelectedParticipant.Chatter}" 
+              ItemTemplate="{DynamicResource MessagesDataTemplate}"
+              ScrollViewer.VerticalScrollBarVisibility="Auto">
+    <i:Interaction.Behaviors>
+        <utils:BringNewItemIntoViewBehavior/>
+    </i:Interaction.Behaviors>
+    <ItemsControl.Template>
+        <ControlTemplate TargetType="ItemsControl">
+            <ScrollViewer>
+                <ItemsPresenter/>
+            </ScrollViewer>
+        </ControlTemplate>
+    </ItemsControl.Template>
+</ItemsControl>
+The elements that display the chat messages are defined in MessagesDataTemplate.
+
+XML
+Shrink ▲   
+<DataTemplate x:Key="MessagesDataTemplate">
+    <Border Name="MessageBorder" MinHeight="40" MinWidth="280" BorderThickness="1" Background="#EFEBE9" 
+            Margin="10,0,60,10" BorderBrush="#BCAAA4" CornerRadius="4" SnapsToDevicePixels="True"
+            HorizontalAlignment="Left">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition Height="15"/>
+            </Grid.RowDefinitions>
+            <Grid x:Name="ImageMessageGrid" Margin="6,6,6,5">
+                <Grid.OpacityMask>
+                    <VisualBrush Visual="{Binding ElementName=ClipBorder}"/>
+                </Grid.OpacityMask>
+                <Border x:Name="ClipBorder" CornerRadius="3" Background="White"/>
+                <Image Stretch="UniformToFill" Cursor="Hand" 
+                               ToolTip="Click to open image in your default image viewer"
+                               Source="{Binding Picture}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseLeftButtonUp">
+                            <i:InvokeCommandAction
+                                Command="{Binding DataContext.OpenImageCommand, 
+                                RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
+                                CommandParameter="{Binding}"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </Image>
+            </Grid>
+            <TextBlock x:Name="MessageTxtBlock" Grid.Row="1" Margin="7,5,7,0" TextWrapping="Wrap"
+                       VerticalAlignment="Stretch" HorizontalAlignment="Stretch" 
+                       Text="{Binding Message}"/>
+            <TextBlock Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                       Margin="0,0,5,0" FontSize="10" Opacity="0.8"
+                       Text="{Binding Time, StringFormat={}{0:t}}"/>
+        </Grid>
+    </Border>
+    <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding IsOriginNative}" Value="True">
+            <Setter TargetName="MessageBorder" Property="HorizontalAlignment" Value="Right"/>
+            <Setter TargetName="MessageBorder" Property="Margin" Value="60,0,10,10"/>
+            <Setter TargetName="MessageBorder" Property="Background" Value="#BBDEFB"/>
+            <Setter TargetName="MessageBorder" Property="BorderBrush" Value="#64B5F6"/>
+        </DataTrigger>
+        <DataTrigger Binding="{Binding Picture}" Value="{x:Null}">
+            <Setter TargetName="ImageMessageGrid" Property="Visibility" Value="Collapsed"/>
+        </DataTrigger>
+        <DataTrigger Binding="{Binding Message}" Value="{x:Null}">
+            <Setter TargetName="MessageTxtBlock" Property="Visibility" Value="Collapsed"/>
+            <Setter TargetName="MessageBorder" Property="MaxWidth" Value="320"/>
+        </DataTrigger>
+        <MultiDataTrigger>
+            <MultiDataTrigger.Conditions>
+                <Condition Binding="{Binding Message}" Value="{x:Null}"/>
+                <Condition Binding="{Binding IsOriginNative}" Value="True"/>
+            </MultiDataTrigger.Conditions>
+            <MultiDataTrigger.Setters>
+                <Setter TargetName="MessageBorder" Property="Margin" Value="0,0,10,10"/>
+                <Setter TargetName="MessageBorder" Property="HorizontalAlignment" Value="Right"/>
+            </MultiDataTrigger.Setters>
+        </MultiDataTrigger>
+    </DataTemplate.Triggers>
+</DataTemplate>
+Notice that clicking on an image will execute an ICommand. The OpenImageCommand calls a method that opens the image in the user's default image viewer.
+
+CSVB.NET
+private ICommand _openImageCommand;
+public ICommand OpenImageCommand
+{
+    get
+    {
+        if (_openImageCommand == null) _openImageCommand = _
+                         new RelayCommand<ChatMessage>((m) => OpenImage(m));
+        return _openImageCommand;
+    }
+}
+
+private void OpenImage(ChatMessage msg)
+{
+    var img = msg.Picture;
+    if (string.IsNullOrEmpty(img) || !File.Exists(img)) return;
+    Process.Start(img);
+}
+Receiving Messages
+When a text message is received from the server, the NewTextMessage() method is called. NewTextMessage() is set as the event handler for the IChatService.NewTextMessage event in MainWindowViewModel's constructor.
+
+CSVB.NET
+private void NewTextMessage(string name, string msg, MessageType mt)
+{
+    if (mt == MessageType.Unicast)
+    {
+        ChatMessage cm = new ChatMessage { Author = name, Message = msg, Time = DateTime.Now };
+        var sender = _participants.Where((u) => string.Equals(u.Name, name)).FirstOrDefault();
+        ctxTaskFactory.StartNew(() => sender.Chatter.Add(cm)).Wait();
+
+        if (!(SelectedParticipant != null && sender.Name.Equals(SelectedParticipant.Name)))
+        {
+            ctxTaskFactory.StartNew(() => sender.HasSentNewMessage = true).Wait();
+        }
+    }
+}
+Image messages are handled by NewImageMessage().
+
+CSVB.NET
+Shrink ▲   
+private void NewImageMessage(string name, byte[] pic, MessageType mt)
+{
+    if (mt == MessageType.Unicast)
+    {
+        var imgsDirectory = Path.Combine(Environment.CurrentDirectory, "Image Messages");
+        if (!Directory.Exists(imgsDirectory)) Directory.CreateDirectory(imgsDirectory);
+
+        var imgsCount = Directory.EnumerateFiles(imgsDirectory).Count() + 1;
+        var imgPath = Path.Combine(imgsDirectory, $"IMG_{imgsCount}.jpg");
+
+        ImageConverter converter = new ImageConverter();
+        using (Image img = (Image)converter.ConvertFrom(pic))
+        {
+            img.Save(imgPath);
+        }
+
+        ChatMessage cm = new ChatMessage { Author = name, Picture = imgPath, Time = DateTime.Now };
+        var sender = _participants.Where(u => string.Equals(u.Name, name)).FirstOrDefault();
+        ctxTaskFactory.StartNew(() => sender.Chatter.Add(cm)).Wait();
+
+        if (!(SelectedParticipant != null && sender.Name.Equals(SelectedParticipant.Name)))
+        {
+            ctxTaskFactory.StartNew(() => sender.HasSentNewMessage = true).Wait();
+        }
+    }
+}
+Bringing a New Message into View
+If there are many items in an ItemsControl, the ScrollViewer for the ItemsControl will not scroll a new item into view by default. I've written a Behavior which the ItemsControl is decorated with to enable a new message to scroll into view when the messages ItemsControl has many items.
+
+CSVB.NET
+Shrink ▲   
+public class BringNewItemIntoViewBehavior : Behavior<ItemsControl>
+{
+    private INotifyCollectionChanged notifier;
+
+    protected override void OnAttached()
+    {
+        base.OnAttached();
+        notifier = AssociatedObject.Items as INotifyCollectionChanged;
+        notifier.CollectionChanged += ItemsControl_CollectionChanged;
+    }
+
+    protected override void OnDetaching()
+    {
+        base.OnDetaching();
+        notifier.CollectionChanged -= ItemsControl_CollectionChanged;
+    }
+
+    private void ItemsControl_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action == NotifyCollectionChangedAction.Add)
+        {
+            var newIndex = e.NewStartingIndex;
+            var newElement = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(newIndex);
+            var item = (FrameworkElement)newElement;
+            item?.BringIntoView();
+        }
+    }
+}
+Switching Views
+Switching from the login to the chat view is done depending on which UserMode is active. The XAML for this is in App.xaml/Application.xaml:
+
+XML
+<DataTemplate x:Key="LoginTemplate">
+    <views:LoginView/>
+</DataTemplate>
+<DataTemplate x:Key="ChatTemplate">
+    <views:ChatView/>
+</DataTemplate>
+
+<Style x:Key="ChatContentStyle" TargetType="ContentControl">
+    <Setter Property="ContentTemplate" Value="{StaticResource LoginTemplate}"/>
+    <Style.Triggers>
+        <DataTrigger Binding="{Binding UserMode}" Value="{x:Static enums:UserModes.Chat}">
+            <Setter Property="ContentTemplate" Value="{StaticResource ChatTemplate}"/>
+        </DataTrigger>
+    </Style.Triggers>
+</Style>
+The views are loaded into a ContentControl in MainWindow.
+
+XML
+<ContentControl Content="{Binding}" Style="{StaticResource ChatContentStyle}"/>
